@@ -18,13 +18,13 @@ namespace TaskManagementAPI.Controllers
         [HttpGet]
         public IActionResult GetAllTasks()
         {
-            return Ok(_taskService.GetItems());
+            return Ok(_taskService.GetAll());
         }
 
         [HttpGet("{id}")]
         public IActionResult GetTaskById(int id)
         {
-            var task = _taskService.GetItem(id);
+            var task = _taskService.Get(id);
 
             if (task == null)
             {

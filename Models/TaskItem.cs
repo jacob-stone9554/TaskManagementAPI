@@ -9,7 +9,7 @@
         public string Priority { get; set; }
         public DateTime Created { get; set; }
         public DateTime Modified { get; set; }
-        public Boolean completed { get; set; }
-        public Boolean IsDeleted { get; set; }
+        public bool completed { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

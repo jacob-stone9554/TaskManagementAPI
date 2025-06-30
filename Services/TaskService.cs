@@ -2,23 +2,35 @@
 
 namespace TaskManagementAPI.Services
 {
-    public class TaskService : IServiceBase<TaskItem>
+    public class TaskService
     {
         private readonly List<TaskItem> _tasks = new List<TaskItem>();
 
         public TaskService() { }
 
-        public IEnumerable<TaskItem> GetAll() => _tasks;
-        public TaskItem Get(int id) => _tasks.FirstOrDefault(t => t.Id == id);
+        public IEnumerable<TaskItem> GetAll(int projectId)
+        {
+            var tasks = _tasks.Where(t => t.ProjectId == projectId);
+
+            return tasks;
+        }
+
+        public TaskItem Get(int id, int projectId)
+        {
+            var task = _tasks.FirstOrDefault(t => t.Id == id && t.ProjectId == projectId);
+
+            return task;
+        }
+
         public TaskItem Create(TaskItem item)
         {
             item.Id = _tasks.Count + 1;
             _tasks.Add(item);
             return item;
         }
-        public TaskItem Update(int id, TaskItem item)
+        public TaskItem Update(int id, int projectId, TaskItem item)
         {
-            var currTask = Get(id);
+            var currTask = Get(id, projectId);
 
             if(currTask == null)
             {
@@ -34,9 +46,9 @@ namespace TaskManagementAPI.Services
             return currTask;
         }
 
-        public bool Delete(int id)
+        public bool Delete(int id, int projectId)
         {
-            var task = Get(id);
+            var task = Get(id, projectId);
             return task != null && _tasks.Remove(task);
         }
 

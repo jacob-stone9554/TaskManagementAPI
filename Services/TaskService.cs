@@ -1,12 +1,17 @@
-﻿using TaskManagementAPI.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using TaskManagementAPI.Models;
 
 namespace TaskManagementAPI.Services
 {
     public class TaskService
     {
         private readonly List<TaskItem> _tasks = new List<TaskItem>();
+        private readonly ProjectService _projectService;
 
-        public TaskService() { }
+        public TaskService(ProjectService projectService) 
+        {
+            _projectService = projectService;
+        }
 
         public IEnumerable<TaskItem> GetAll(int projectId)
         {
@@ -22,10 +27,19 @@ namespace TaskManagementAPI.Services
             return task;
         }
 
-        public TaskItem Create(TaskItem item)
+        public TaskItem Create(int projectId, TaskItem item)
         {
+            var project = _projectService.GetProject(projectId);
+
+            if (project == null)
+                return null;
+
+
             item.Id = _tasks.Count + 1;
-            _tasks.Add(item);
+            item.ProjectId = project.Id;
+
+            project.tasks.Add(item);
+            
             return item;
         }
         public TaskItem Update(int id, int projectId, TaskItem item)
@@ -48,9 +62,19 @@ namespace TaskManagementAPI.Services
 
         public bool Delete(int id, int projectId)
         {
+            var project = _projectService.GetProject(projectId);
+
+            if (project == null)
+                return false;
+
             var task = Get(id, projectId);
+
+            if (task == null) 
+                return false;
+
+            project.tasks.Remove(task);
+
             return task != null && _tasks.Remove(task);
         }
-
     }
 }

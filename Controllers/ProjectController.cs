@@ -43,11 +43,64 @@ namespace TaskManagementAPI.Controllers
             return Ok(project);
         }
 
-        [HttpGet]
+        [HttpGet("/api/projects/{projectId}/tasks")]
         public IActionResult GetTasksByProject(int projectId)
         {
-            return Ok();
+            //make sure the project exists
+            var project = _projectService.GetProject(projectId);
+
+            if (project == null)
+                return NotFound(new { Message = $"No project found for a Project ID of {projectId}" });
+
+
+            var tasks = _taskService.GetAll(projectId);
+
+            if(tasks == null)
+            {
+                return NotFound(new { Message = $"No tasks found for a Project ID of {projectId}" });
+            }
+
+            return Ok(tasks);
         }
 
+        [HttpGet("/api/projects/{projectId}/tasks/{taskId}")]
+        public IActionResult GetTaskById(int projectId, int taskId)
+        {
+            var task = _taskService.Get(taskId, projectId);
+
+            if (task == null)
+            {
+                return NotFound(new { Message = $"No task found with ID of {taskId} in Project with ID of {projectId}" });
+            }
+
+            return Ok(task);
+        }
+
+        [HttpPost("/api/projects")]
+        public IActionResult CreateProject([FromBody] Project project)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var newProject = _projectService.CreateProject(project);
+            return CreatedAtAction(nameof(GetProject), new { projectId = project.Id }, newProject);
+        }
+
+        [HttpPost("/api/projects/{projectId}/tasks")]
+        public IActionResult CreateTask(int projectId, [FromBody] TaskItem task)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var newTask = _taskService.Create(projectId, task);
+
+            if (newTask == null)
+                return BadRequest();
+
+            return CreatedAtAction(nameof(GetTaskById), new { projectId = projectId, taskId = newTask.Id }, newTask);
+
+        }
     }
 }

@@ -100,7 +100,80 @@ namespace TaskManagementAPI.Controllers
                 return BadRequest();
 
             return CreatedAtAction(nameof(GetTaskById), new { projectId = projectId, taskId = newTask.Id }, newTask);
+        }
 
+        [HttpPatch("/api/projects/{projectId}")]
+        public IActionResult UpdateProject(int projectId, [FromBody] Project project)
+        {
+            if(! ModelState.IsValid) return BadRequest();
+
+            var updatedProj = _projectService.UpdateProject(projectId, project);
+
+            if (updatedProj == null)
+                return NotFound(new { Message = $"No project found with ID of {projectId}" });
+
+            return Ok(updatedProj);
+        }
+
+        [HttpPatch("/api/projects/{projectId}/tasks/{taskId}")]
+        public IActionResult UpdateTask(int projectId, int taskId, [FromBody] TaskItem task)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+
+            var updatedTask = _taskService.Update(taskId, projectId, task);
+
+            if (updatedTask == null)
+                return NotFound(new { Message = $"No task found with ID of {taskId} for project with ID of {projectId}" });
+
+            return Ok(updatedTask);
+        }
+
+        [HttpDelete("/api/projects/{projectId}")]
+        public IActionResult DeleteProject(int projectId)
+        {
+            var project = _projectService.GetProject(projectId);
+
+            if(project == null) 
+                return NotFound(new { Message = $"No project found with ID of {projectId}" });
+
+            bool success = false;
+
+            //delete project tasks to prevent orphans
+            foreach(var task in project.tasks)
+            {
+                success = _taskService.Delete(task.Id, projectId);
+            }
+
+            success = _projectService.DeleteProject(projectId);
+
+            if(success)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpDelete("/api/projects/{projectId}/tasks/{taskId}")]
+        public IActionResult DeleteTask(int projectId, int taskId)
+        {
+            var task = _taskService.Get(taskId, projectId);
+
+            if (task == null)
+                return NotFound(new { Message = $"No task found with ID of {taskId} for project with ID of {projectId}" });
+
+            bool success = _taskService.Delete(task.Id, projectId);
+
+            if (success)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
     }
 }

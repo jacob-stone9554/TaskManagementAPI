@@ -18,9 +18,9 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpGet("/api/projects")]
-        public IActionResult GetAllProjects()
+        public async Task<IActionResult> GetAllProjects()
         {
-            var projects = _projectService.GetAllProjects();
+            var projects = await _projectService.GetAllProjectsAsync();
 
             if (!projects.Any())
             {
@@ -31,9 +31,9 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpGet("/api/projects/{projectId}")]
-        public IActionResult GetProject(int projectId)
+        public async Task<IActionResult> GetProject(int projectId)
         {
-            var project = _projectService.GetProject(projectId);
+            var project = await _projectService.GetProjectAsync(projectId);
 
             if (project == null)
             {
@@ -44,16 +44,16 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpGet("/api/projects/{projectId}/tasks")]
-        public IActionResult GetTasksByProject(int projectId)
+        public async Task<IActionResult> GetTasksByProject(int projectId)
         {
             //make sure the project exists
-            var project = _projectService.GetProject(projectId);
+            var project = await _projectService.GetProjectAsync(projectId);
 
             if (project == null)
                 return NotFound(new { Message = $"No project found for a Project ID of {projectId}" });
 
 
-            var tasks = _taskService.GetAll(projectId);
+            var tasks = await _taskService.GetAllAsync(projectId);
 
             if(tasks == null)
             {
@@ -64,9 +64,9 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpGet("/api/projects/{projectId}/tasks/{taskId}")]
-        public IActionResult GetTaskById(int projectId, int taskId)
+        public async Task<IActionResult> GetTaskById(int projectId, int taskId)
         {
-            var task = _taskService.Get(taskId, projectId);
+            var task = await _taskService.GetAsync(taskId, projectId);
 
             if (task == null)
             {
@@ -77,24 +77,24 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpPost("/api/projects")]
-        public IActionResult CreateProject([FromBody] Project project)
+        public async Task<IActionResult> CreateProject([FromBody] Project project)
         {
             if(!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            var newProject = _projectService.CreateProject(project);
+            var newProject = await _projectService.CreateProjectAsync(project);
             return CreatedAtAction(nameof(GetProject), new { projectId = project.Id }, newProject);
         }
 
         [HttpPost("/api/projects/{projectId}/tasks")]
-        public IActionResult CreateTask(int projectId, [FromBody] TaskItem task)
+        public async Task<IActionResult> CreateTask(int projectId, [FromBody] TaskItem task)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var newTask = _taskService.Create(projectId, task);
+            var newTask = await _taskService.CreateAsync(projectId, task);
 
             if (newTask == null)
                 return BadRequest();
@@ -103,11 +103,11 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpPatch("/api/projects/{projectId}")]
-        public IActionResult UpdateProject(int projectId, [FromBody] Project project)
+        public async Task<IActionResult> UpdateProject(int projectId, [FromBody] Project project)
         {
             if(! ModelState.IsValid) return BadRequest();
 
-            var updatedProj = _projectService.UpdateProject(projectId, project);
+            var updatedProj = await _projectService.UpdateProjectAsync(projectId, project);
 
             if (updatedProj == null)
                 return NotFound(new { Message = $"No project found with ID of {projectId}" });
@@ -116,11 +116,11 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpPatch("/api/projects/{projectId}/tasks/{taskId}")]
-        public IActionResult UpdateTask(int projectId, int taskId, [FromBody] TaskItem task)
+        public async Task<IActionResult> UpdateTask(int projectId, int taskId, [FromBody] TaskItem task)
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var updatedTask = _taskService.Update(taskId, projectId, task);
+            var updatedTask = await _taskService.UpdateAsync(taskId, projectId, task);
 
             if (updatedTask == null)
                 return NotFound(new { Message = $"No task found with ID of {taskId} for project with ID of {projectId}" });
@@ -129,9 +129,9 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpDelete("/api/projects/{projectId}")]
-        public IActionResult DeleteProject(int projectId)
+        public async Task<IActionResult> DeleteProject(int projectId)
         {
-            var project = _projectService.GetProject(projectId);
+            var project = await _projectService.GetProjectAsync(projectId);
 
             if(project == null) 
                 return NotFound(new { Message = $"No project found with ID of {projectId}" });
@@ -141,10 +141,10 @@ namespace TaskManagementAPI.Controllers
             //delete project tasks to prevent orphans
             foreach(var task in project.tasks)
             {
-                success = _taskService.Delete(task.Id, projectId);
+                success = await _taskService.DeleteAsync(task.Id, projectId);
             }
 
-            success = _projectService.DeleteProject(projectId);
+            success = await _projectService.DeleteProjectAsync(projectId);
 
             if(success)
             {
@@ -157,14 +157,14 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpDelete("/api/projects/{projectId}/tasks/{taskId}")]
-        public IActionResult DeleteTask(int projectId, int taskId)
+        public async Task<IActionResult> DeleteTask(int projectId, int taskId)
         {
-            var task = _taskService.Get(taskId, projectId);
+            var task = await _taskService.GetAsync(taskId, projectId);
 
             if (task == null)
                 return NotFound(new { Message = $"No task found with ID of {taskId} for project with ID of {projectId}" });
 
-            bool success = _taskService.Delete(task.Id, projectId);
+            bool success = await _taskService.DeleteAsync(task.Id, projectId);
 
             if (success)
             {

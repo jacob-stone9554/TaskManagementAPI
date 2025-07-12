@@ -41,7 +41,11 @@ A RESTful Web API built with **ASP.NET Core** and **Entity Framework Core** for 
 ## 🧱 Project Structure
 
 /Controllers → API controllers
+
 /Services → Business logic
+
 /DTOs → Request/response models
+
 /Models → EF Core entity models
+
 /Data → AppDbContext

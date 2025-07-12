@@ -1,50 +1,48 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TaskManagementAPI.Data;
 using TaskManagementAPI.Models;
 
 namespace TaskManagementAPI.Services
 {
     public class TaskService
     {
-        private readonly List<TaskItem> _tasks = new List<TaskItem>();
+        private readonly AppDbContext _context;
         private readonly ProjectService _projectService;
 
-        public TaskService(ProjectService projectService) 
+        public TaskService(ProjectService projectService, AppDbContext context) 
         {
             _projectService = projectService;
+            _context = context;
         }
 
-        public IEnumerable<TaskItem> GetAll(int projectId)
+        public async Task<IEnumerable<TaskItem>> GetAllAsync(int projectId)
         {
-            var tasks = _tasks.Where(t => t.ProjectId == projectId);
-
-            return tasks;
+            return await _context.Tasks.Where(t => t.ProjectId == projectId).ToListAsync();
         }
 
-        public TaskItem Get(int id, int projectId)
+        public async Task<TaskItem> GetAsync(int id, int projectId)
         {
-            var task = _tasks.FirstOrDefault(t => t.Id == id && t.ProjectId == projectId);
-
-            return task;
+            return await _context.Tasks.Where(t => t.ProjectId == projectId && t.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<TaskItem> Create(int projectId, TaskItem item)
+        public async Task<TaskItem> CreateAsync(int projectId, TaskItem item)
         {
             var project = await _projectService.GetProjectAsync(projectId);
 
             if (project == null)
                 return null;
 
-
-            item.Id = _tasks.Count + 1;
             item.ProjectId = project.Id;
 
-            project.tasks.Add(item);
-            
+            await _context.Tasks.AddAsync(item);
+            await _context.SaveChangesAsync();
+
             return item;
         }
-        public TaskItem Update(int id, int projectId, TaskItem item)
+        public async Task<TaskItem> UpdateAsync(int id, int projectId, TaskItem item)
         {
-            var currTask = Get(id, projectId);
+            var currTask = await GetAsync(id, projectId);
 
             if(currTask == null)
             {
@@ -57,6 +55,8 @@ namespace TaskManagementAPI.Services
             currTask.completed = item.completed;
             currTask.IsDeleted = item.IsDeleted;
 
+            await _context.SaveChangesAsync();
+
             return currTask;
         }
 
@@ -67,14 +67,16 @@ namespace TaskManagementAPI.Services
             if (project == null)
                 return false;
 
-            var task = Get(id, projectId);
+            var task = await GetAsync(id, projectId);
 
-            if (task == null) 
+            if (task != null)
+            {
+                _context.Tasks.Remove(task);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            else
                 return false;
-
-            project.tasks.Remove(task);
-
-            return task != null && _tasks.Remove(task);
         }
     }
 }

@@ -1,42 +1,49 @@
-﻿using TaskManagementAPI.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using TaskManagementAPI.Data;
+using TaskManagementAPI.Models;
 
 namespace TaskManagementAPI.Services
 {
     public class ProjectService
     {
+
         private readonly List<Project> _projects = new List<Project>();
+        private readonly AppDbContext _context;
         
-        public ProjectService() 
+        public ProjectService(AppDbContext context) 
         {
-            
+            _context = context;
         }
 
-        public IEnumerable<Project> GetAllProjects() => _projects;
-        public IEnumerable<TaskItem> GetTasksByProject(int projectId)
+        public async Task<IEnumerable<Project>> GetAllProjectsAsync() 
         {
-            var project = GetProject(projectId);
+            return await _context.Projects.Include(p => p.tasks).ToListAsync();
+        } 
 
-            if (project == null)
-            {
-                return null;
-            }
-
-            var tasks = project.tasks;
-            return tasks;
+        public async Task<IEnumerable<TaskItem>> GetTasksByProjectAsync(int projectId)
+        {
+            return await _context.Projects.Where(p => p.Id == projectId)
+                .SelectMany(p => p.tasks)
+                .ToListAsync();
         }
 
-        public Project GetProject(int id) => _projects.FirstOrDefault(p => p.Id == id);
-
-        public Project CreateProject(Project project)
+        public async Task<Project> GetProjectAsync(int id)
         {
-            project.Id = _projects.Count() + 1;
-            _projects.Add(project);
+            return await _context.Projects.Include(p => p.tasks)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }                        
+
+        public async Task<Project> CreateProjectAsync(Project project)
+        {            
+            await _context.AddAsync(project);
+            await _context.SaveChangesAsync();
+
             return project;
         }
         
-        public Project UpdateProject(int id, Project project)
+        public async Task<Project> UpdateProjectAsync(int id, Project project)
         {
-            var currProj = GetProject(id);
+            var currProj = await GetProjectAsync(id);
 
             if (currProj == null)
             {
@@ -47,13 +54,23 @@ namespace TaskManagementAPI.Services
             currProj.Description = project.Description;
             currProj.tasks = project.tasks;
 
+            await _context.SaveChangesAsync();
+
             return currProj;
         }
 
-        public bool DeleteProject(int id)
+        public async Task<bool> DeleteProjectAsync(int id)
         {
-            var proj = GetProject(id);
-            return proj != null && _projects.Remove(proj);
+            var projToDelete = await GetProjectAsync(id);
+
+            if (projToDelete != null)
+            {
+                _context.Projects.Remove(projToDelete);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            else
+                return false;
         }
     }
 }

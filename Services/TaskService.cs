@@ -27,9 +27,9 @@ namespace TaskManagementAPI.Services
             return task;
         }
 
-        public TaskItem Create(int projectId, TaskItem item)
+        public async Task<TaskItem> Create(int projectId, TaskItem item)
         {
-            var project = _projectService.GetProject(projectId);
+            var project = await _projectService.GetProjectAsync(projectId);
 
             if (project == null)
                 return null;
@@ -60,9 +60,9 @@ namespace TaskManagementAPI.Services
             return currTask;
         }
 
-        public bool Delete(int id, int projectId)
+        public async Task<bool> DeleteAsync(int id, int projectId)
         {
-            var project = _projectService.GetProject(projectId);
+            var project = await _projectService.GetProjectAsync(projectId);
 
             if (project == null)
                 return false;

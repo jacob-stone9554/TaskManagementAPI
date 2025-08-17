@@ -1,13 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskManagementAPI.Data;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.DTOs;
 
 namespace TaskManagementAPI.Services
 {
     public class ProjectService
-    {
-
-        private readonly List<Project> _projects = new List<Project>();
+    {        
         private readonly AppDbContext _context;
         
         public ProjectService(AppDbContext context) 
@@ -33,12 +32,21 @@ namespace TaskManagementAPI.Services
                 .FirstOrDefaultAsync(p => p.Id == id);
         }                        
 
-        public async Task<Project> CreateProjectAsync(Project project)
+        public async Task<ProjectReadDTO> CreateProjectAsync(ProjectCreateDTO project)
         {            
+            var newProj = new Project
+            {
+                Name = project.Name,
+                Description = project.Description
+            };
+
             await _context.AddAsync(project);
             await _context.SaveChangesAsync();
 
-            return project;
+            ProjectReadDTO projectReadDTO = new ProjectReadDTO();
+            //projectReadDTO.Id
+
+            return projectReadDTO;
         }
         
         public async Task<Project> UpdateProjectAsync(int id, Project project)

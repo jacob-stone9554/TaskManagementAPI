@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.Models;
 using TaskManagementAPI.Services;
+using TaskManagementAPI.DTOs;
 
 namespace TaskManagementAPI.Controllers
 {
@@ -77,7 +78,7 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpPost("/api/projects")]
-        public async Task<IActionResult> CreateProject([FromBody] Project project)
+        public async Task<IActionResult> CreateProject([FromBody] ProjectCreateDTO project)
         {
             if(!ModelState.IsValid)
             {
@@ -85,7 +86,7 @@ namespace TaskManagementAPI.Controllers
             }
 
             var newProject = await _projectService.CreateProjectAsync(project);
-            return CreatedAtAction(nameof(GetProject), new { projectId = project.Id }, newProject);
+            return CreatedAtAction(nameof(GetProject), new { projectId = newProject.Id }, newProject);
         }
 
         [HttpPost("/api/projects/{projectId}/tasks")]
@@ -103,7 +104,7 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpPatch("/api/projects/{projectId}")]
-        public async Task<IActionResult> UpdateProject(int projectId, [FromBody] Project project)
+        public async Task<IActionResult> UpdateProject(int projectId, [FromBody] ProjectUpdateDTO project)
         {
             if(! ModelState.IsValid) return BadRequest();
 
@@ -137,12 +138,6 @@ namespace TaskManagementAPI.Controllers
                 return NotFound(new { Message = $"No project found with ID of {projectId}" });
 
             bool success = false;
-
-            //delete project tasks to prevent orphans
-            foreach(var task in project.tasks)
-            {
-                success = await _taskService.DeleteAsync(task.Id, projectId);
-            }
 
             success = await _projectService.DeleteProjectAsync(projectId);
 

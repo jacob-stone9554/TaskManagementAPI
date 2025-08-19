@@ -29,10 +29,20 @@ namespace TaskManagementAPI.Services
             return projectDTOs;
         } 
 
-        public async Task<IEnumerable<TaskItem>> GetTasksByProjectAsync(int projectId)
+        public async Task<IEnumerable<TaskItemReadDTO>> GetTasksByProjectAsync(int projectId)
         {
+
+
             return await _context.Projects.Where(p => p.Id == projectId)
                 .SelectMany(p => p.tasks)
+                .Select(t => new TaskItemReadDTO
+                {
+                    ProjectId = t.ProjectId,
+                    Name = t.Name,
+                    Description = t.Description,
+                    Priority = t.Priority,
+                    Completed = t.completed
+                })
                 .ToListAsync();
         }
 

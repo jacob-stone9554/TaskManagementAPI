@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagementAPI.Data;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.DTOs;
 
 namespace TaskManagementAPI.Services
 {
@@ -16,9 +17,18 @@ namespace TaskManagementAPI.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<TaskItem>> GetAllAsync(int projectId)
+        public async Task<IEnumerable<TaskItemReadDTO>> GetAllAsync(int projectId)
         {
-            return await _context.Tasks.Where(t => t.ProjectId == projectId).ToListAsync();
+            return await _context.Tasks.Where(t => t.ProjectId == projectId)
+                .Select(t => new TaskItemReadDTO
+                {
+                    ProjectId = t.ProjectId,
+                    Name = t.Name,
+                    Description = t.Description,
+                    Completed = t.completed,
+                    Priority = t.Priority
+                })
+                .ToListAsync();
         }
 
         public async Task<TaskItem> GetAsync(int id, int projectId)

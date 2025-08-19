@@ -14,9 +14,19 @@ namespace TaskManagementAPI.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<Project>> GetAllProjectsAsync() 
+        public async Task<IEnumerable<ProjectReadDTO>> GetAllProjectsAsync() 
         {
-            return await _context.Projects.Include(p => p.tasks).ToListAsync();
+            var projects = await _context.Projects.ToListAsync();
+
+            var projectDTOs = projects.Select(p => new ProjectReadDTO
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description
+            });
+
+            //return await _context.Projects.Include(p => p.tasks).ToListAsync();
+            return projectDTOs;
         } 
 
         public async Task<IEnumerable<TaskItem>> GetTasksByProjectAsync(int projectId)
@@ -26,10 +36,18 @@ namespace TaskManagementAPI.Services
                 .ToListAsync();
         }
 
-        public async Task<Project> GetProjectAsync(int id)
+        public async Task<ProjectReadDTO> GetProjectAsync(int id)
         {
-            return await _context.Projects.Include(p => p.tasks)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
+
+            var projectReadDTO = new ProjectReadDTO
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description
+            };
+
+            return projectReadDTO;
         }                        
 
         public async Task<ProjectReadDTO> CreateProjectAsync(ProjectCreateDTO project)
@@ -40,18 +58,21 @@ namespace TaskManagementAPI.Services
                 Description = project.Description
             };
 
-            await _context.AddAsync(project);
+            await _context.AddAsync(newProj);
             await _context.SaveChangesAsync();
 
-            ProjectReadDTO projectReadDTO = new ProjectReadDTO();
-            //projectReadDTO.Id
-
+            ProjectReadDTO projectReadDTO = new ProjectReadDTO()
+            {
+                Id = newProj.Id,
+                Name = project.Name,
+                Description = project.Description
+            };
             return projectReadDTO;
         }
         
-        public async Task<Project> UpdateProjectAsync(int id, Project project)
+        public async Task<ProjectReadDTO> UpdateProjectAsync(int id, ProjectUpdateDTO project)
         {
-            var currProj = await GetProjectAsync(id);
+            var currProj = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
 
             if (currProj == null)
             {
@@ -60,16 +81,22 @@ namespace TaskManagementAPI.Services
 
             currProj.Name = project.Name;
             currProj.Description = project.Description;
-            currProj.tasks = project.tasks;
-
+            
             await _context.SaveChangesAsync();
 
-            return currProj;
+            var readDTO = new ProjectReadDTO()
+            {
+                Id = currProj.Id,
+                Name = currProj.Name,
+                Description = currProj.Description
+            };
+
+            return readDTO;
         }
 
         public async Task<bool> DeleteProjectAsync(int id)
         {
-            var projToDelete = await GetProjectAsync(id);
+            var projToDelete = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
 
             if (projToDelete != null)
             {

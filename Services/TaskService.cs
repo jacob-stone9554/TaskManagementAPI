@@ -31,28 +31,78 @@ namespace TaskManagementAPI.Services
                 .ToListAsync();
         }
 
-        public async Task<TaskItem> GetAsync(int id, int projectId)
+        public async Task<TaskItemReadDTO> GetAsync(int id, int projectId)
         {
-            return await _context.Tasks.Where(t => t.ProjectId == projectId && t.Id == id).FirstOrDefaultAsync();
+            var task = await _context.Tasks.Where(t => t.ProjectId == projectId && t.Id == id)
+                .FirstOrDefaultAsync();
+
+            var taskReadDTO = new TaskItemReadDTO()
+            {
+                ProjectId = task.ProjectId,
+                Name = task.Name,
+                Description = task.Description,
+                Completed = task.completed,
+                Priority = task.Priority
+            };
+
+            return taskReadDTO;
         }
 
-        public async Task<TaskItem> CreateAsync(int projectId, TaskItem item)
+        //public async Task<ProjectReadDTO> CreateProjectAsync(ProjectCreateDTO project)
+        //{
+        //    var newProj = new Project
+        //    {
+        //        Name = project.Name,
+        //        Description = project.Description
+        //    };
+
+        //    await _context.AddAsync(newProj);
+        //    await _context.SaveChangesAsync();
+
+        //    ProjectReadDTO projectReadDTO = new ProjectReadDTO()
+        //    {
+        //        Id = newProj.Id,
+        //        Name = project.Name,
+        //        Description = project.Description
+        //    };
+        //    return projectReadDTO;
+        //}
+
+        public async Task<TaskItemReadDTO> CreateAsync(int projectId, TaskItemCreateDTO item)
         {
             var project = await _projectService.GetProjectAsync(projectId);
 
             if (project == null)
                 return null;
 
-            item.ProjectId = project.Id;
+            var task = new TaskItem()
+            {
+                ProjectId = projectId,
+                Name = item.Name,
+                Description = item.Description,
+                Priority = item.Priority
+            };
 
-            await _context.Tasks.AddAsync(item);
+            //item.ProjectId = project.Id;
+
+            await _context.Tasks.AddAsync(task);
             await _context.SaveChangesAsync();
 
-            return item;
+            var taskItemReadDTO = new TaskItemReadDTO()
+            {
+                ProjectId = task.ProjectId,
+                Name = task.Name,
+                Description = task.Description,
+                Completed = task.completed,
+                Priority = task.Priority
+            };
+
+            return taskItemReadDTO;
         }
-        public async Task<TaskItem> UpdateAsync(int id, int projectId, TaskItem item)
+        public async Task<TaskItemReadDTO> UpdateAsync(int id, int projectId, TaskItemUpdateDTO item)
         {
-            var currTask = await GetAsync(id, projectId);
+            var currTask = await _context.Tasks.Where(t => t.Id == id && t.ProjectId == projectId)
+                .FirstOrDefaultAsync();
 
             if(currTask == null)
             {
@@ -62,22 +112,26 @@ namespace TaskManagementAPI.Services
             currTask.Name = item.Name;
             currTask.Description = item.Description;
             currTask.Priority = item.Priority;
-            currTask.completed = item.completed;
-            currTask.IsDeleted = item.IsDeleted;
+            currTask.completed = item.Completed;
 
             await _context.SaveChangesAsync();
 
-            return currTask;
+            var taskReadDTO = new TaskItemReadDTO()
+            {
+                ProjectId = currTask.ProjectId,
+                Name = currTask.Name,
+                Description = currTask.Description,
+                Priority = currTask.Priority,
+                Completed = currTask.completed
+            };
+
+            return taskReadDTO;
         }
 
         public async Task<bool> DeleteAsync(int id, int projectId)
         {
-            var project = await _projectService.GetProjectAsync(projectId);
-
-            if (project == null)
-                return false;
-
-            var task = await GetAsync(id, projectId);
+            var task = await _context.Tasks.Where(t => t.Id == id && t.ProjectId == projectId)
+                .FirstOrDefaultAsync();
 
             if (task != null)
             {

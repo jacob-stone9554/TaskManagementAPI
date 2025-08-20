@@ -24,8 +24,7 @@ namespace TaskManagementAPI.Services
                 Name = p.Name,
                 Description = p.Description
             });
-
-            //return await _context.Projects.Include(p => p.tasks).ToListAsync();
+            
             return projectDTOs;
         } 
 

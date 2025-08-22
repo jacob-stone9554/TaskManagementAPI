@@ -90,6 +90,7 @@ namespace TaskManagementAPI.Services
 
             var taskItemReadDTO = new TaskItemReadDTO()
             {
+                Id = task.Id,
                 ProjectId = task.ProjectId,
                 Name = task.Name,
                 Description = task.Description,

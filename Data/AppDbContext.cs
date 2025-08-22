@@ -38,7 +38,7 @@ namespace TaskManagementAPI.Data
 
             modelBuilder.Entity<TaskItem>()
                 .Property(t => t.Id)
-                .ValueGeneratedOnAdd();
+                .UseIdentityColumn();
         }
     }
 }

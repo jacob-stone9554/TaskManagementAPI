@@ -33,6 +33,12 @@ namespace TaskManagementAPI.Data
                 .WithOne()
                 .HasForeignKey(t => t.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TaskItem>().HasKey(t => t.Id);
+
+            modelBuilder.Entity<TaskItem>()
+                .Property(t => t.Id)
+                .UseIdentityColumn();
         }
     }
 }

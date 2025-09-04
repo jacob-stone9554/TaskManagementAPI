@@ -2,16 +2,20 @@
 using TaskManagementAPI.Data;
 using TaskManagementAPI.Models;
 using TaskManagementAPI.DTOs;
+using TaskManagementAPI.Repos;
 
 namespace TaskManagementAPI.Services
 {
     public class ProjectService
     {        
-        private readonly AppDbContext _context;
+        private readonly AppDbContext _context; // remove this after updating to use ProjectRepo
+        private readonly ProjectRepository _projectRepo;
+
         
-        public ProjectService(AppDbContext context) 
+        public ProjectService(AppDbContext context, ProjectRepository projectRepo) 
         {
             _context = context;
+            _projectRepo = projectRepo;
         }
 
         public async Task<IEnumerable<ProjectReadDTO>> GetAllProjectsAsync() 
@@ -47,7 +51,7 @@ namespace TaskManagementAPI.Services
 
         public async Task<ProjectReadDTO> GetProjectAsync(int id)
         {
-            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
+            var project = await _projectRepo.GetByIdAsync(id);
 
             var projectReadDTO = new ProjectReadDTO
             {

@@ -22,6 +22,7 @@ namespace TaskManagementAPI.Services
             return await _context.Tasks.Where(t => t.ProjectId == projectId)
                 .Select(t => new TaskItemReadDTO
                 {
+                    Id = t.Id,
                     ProjectId = t.ProjectId,
                     Name = t.Name,
                     Description = t.Description,

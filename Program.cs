@@ -14,6 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<ProjectRepository>();
+builder.Services.AddScoped<TaskItemRepository>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

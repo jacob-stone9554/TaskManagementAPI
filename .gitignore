@@ -21,3 +21,11 @@ Thumbs.db
 
 launchSettings.json
 Properties/launchSettings.json
+
+Migrations/
+
+packages/
+
+*.g.cs
+*.Designer.cs
+TaskManagementAPI.Tests.GlobalUsings.g.cs

@@ -20,7 +20,7 @@ namespace TaskManagementAPI.Services
 
         public async Task<IEnumerable<ProjectReadDTO>> GetAllProjectsAsync() 
         {
-            var projects = await _context.Projects.ToListAsync();
+            var projects = await _projectRepo.GetProjectsAsync();
 
             var projectDTOs = projects.Select(p => new ProjectReadDTO
             {
@@ -34,8 +34,6 @@ namespace TaskManagementAPI.Services
 
         public async Task<IEnumerable<TaskItemReadDTO>> GetTasksByProjectAsync(int projectId)
         {
-
-
             return await _context.Projects.Where(p => p.Id == projectId)
                 .SelectMany(p => p.tasks)
                 .Select(t => new TaskItemReadDTO
@@ -71,8 +69,7 @@ namespace TaskManagementAPI.Services
                 Description = project.Description
             };
 
-            await _context.AddAsync(newProj);
-            await _context.SaveChangesAsync();
+            await _projectRepo.AddAsync(newProj);
 
             ProjectReadDTO projectReadDTO = new ProjectReadDTO()
             {
@@ -85,7 +82,7 @@ namespace TaskManagementAPI.Services
         
         public async Task<ProjectReadDTO> UpdateProjectAsync(int id, ProjectUpdateDTO project)
         {
-            var currProj = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
+            var currProj = await _projectRepo.GetByIdAsync(id);
 
             if (currProj == null)
             {
@@ -109,16 +106,7 @@ namespace TaskManagementAPI.Services
 
         public async Task<bool> DeleteProjectAsync(int id)
         {
-            var projToDelete = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
-
-            if (projToDelete != null)
-            {
-                _context.Projects.Remove(projToDelete);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            else
-                return false;
+            return await _projectRepo.DeleteAsync(id);
         }
     }
 }

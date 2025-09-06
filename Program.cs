@@ -1,6 +1,7 @@
 using TaskManagementAPI.Services;
 using TaskManagementAPI.Data;
 using Microsoft.EntityFrameworkCore;
+using TaskManagementAPI.Repos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<ProjectRepository>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

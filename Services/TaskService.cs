@@ -3,75 +3,53 @@ using Microsoft.EntityFrameworkCore;
 using TaskManagementAPI.Data;
 using TaskManagementAPI.Models;
 using TaskManagementAPI.DTOs;
+using TaskManagementAPI.Repos;
 
 namespace TaskManagementAPI.Services
 {
     public class TaskService
     {
-        private readonly AppDbContext _context;
-        private readonly ProjectService _projectService;
+        private readonly TaskItemRepository _taskRepo;
+        private readonly ProjectRepository _projectRepo;
 
-        public TaskService(ProjectService projectService, AppDbContext context) 
-        {
-            _projectService = projectService;
-            _context = context;
+        public TaskService(ProjectRepository projectRepo, TaskItemRepository taskItemRepo) 
+        {                    
+            _projectRepo = projectRepo;
+            _taskRepo = taskItemRepo;
         }
 
         public async Task<IEnumerable<TaskItemReadDTO>> GetAllAsync(int projectId)
         {
-            return await _context.Tasks.Where(t => t.ProjectId == projectId)
-                .Select(t => new TaskItemReadDTO
-                {
-                    Id = t.Id,
-                    ProjectId = t.ProjectId,
-                    Name = t.Name,
-                    Description = t.Description,
-                    Completed = t.completed,
-                    Priority = t.Priority
-                })
-                .ToListAsync();
+            var items = await _taskRepo.GetTaskItemsAsync(projectId);
+
+            return items.Select(t => new TaskItemReadDTO
+            {
+                Id = t.Id,
+                ProjectId = t.ProjectId,
+                Name = t.Name,
+                Description = t.Description,
+                Completed = t.completed,
+                Priority = t.Priority
+            });
         }
 
         public async Task<TaskItemReadDTO> GetAsync(int id, int projectId)
         {
-            var task = await _context.Tasks.Where(t => t.ProjectId == projectId && t.Id == id)
-                .FirstOrDefaultAsync();
+            var task = await _taskRepo.GetTaskByIdAsync(id, projectId);                
 
-            var taskReadDTO = new TaskItemReadDTO()
+            return new TaskItemReadDTO()
             {
                 ProjectId = task.ProjectId,
                 Name = task.Name,
                 Description = task.Description,
                 Completed = task.completed,
                 Priority = task.Priority
-            };
-
-            return taskReadDTO;
+            };            
         }
-
-        //public async Task<ProjectReadDTO> CreateProjectAsync(ProjectCreateDTO project)
-        //{
-        //    var newProj = new Project
-        //    {
-        //        Name = project.Name,
-        //        Description = project.Description
-        //    };
-
-        //    await _context.AddAsync(newProj);
-        //    await _context.SaveChangesAsync();
-
-        //    ProjectReadDTO projectReadDTO = new ProjectReadDTO()
-        //    {
-        //        Id = newProj.Id,
-        //        Name = project.Name,
-        //        Description = project.Description
-        //    };
-        //    return projectReadDTO;
-        //}
 
         public async Task<TaskItemReadDTO> CreateAsync(int projectId, TaskItemCreateDTO item)
         {
-            var project = await _projectService.GetProjectAsync(projectId);
+            var project = await _projectRepo.GetByIdAsync(projectId);
 
             if (project == null)
                 return null;
@@ -82,14 +60,11 @@ namespace TaskManagementAPI.Services
                 Name = item.Name,
                 Description = item.Description,
                 Priority = item.Priority
-            };
+            };           
 
-            //item.ProjectId = project.Id;
+            await _taskRepo.AddAsync(task);
 
-            await _context.Tasks.AddAsync(task);
-            await _context.SaveChangesAsync();
-
-            var taskItemReadDTO = new TaskItemReadDTO()
+            return new TaskItemReadDTO()
             {
                 Id = task.Id,
                 ProjectId = task.ProjectId,
@@ -97,14 +72,11 @@ namespace TaskManagementAPI.Services
                 Description = task.Description,
                 Completed = task.completed,
                 Priority = task.Priority
-            };
-
-            return taskItemReadDTO;
+            };            
         }
         public async Task<TaskItemReadDTO> UpdateAsync(int id, int projectId, TaskItemUpdateDTO item)
         {
-            var currTask = await _context.Tasks.Where(t => t.Id == id && t.ProjectId == projectId)
-                .FirstOrDefaultAsync();
+            var currTask = await _taskRepo.GetTaskByIdAsync(id, projectId);
 
             if(currTask == null)
             {
@@ -116,9 +88,9 @@ namespace TaskManagementAPI.Services
             currTask.Priority = item.Priority;
             currTask.completed = item.Completed;
 
-            await _context.SaveChangesAsync();
+            await _taskRepo.UpdateAsync(currTask);
 
-            var taskReadDTO = new TaskItemReadDTO()
+            return new TaskItemReadDTO()
             {
                 ProjectId = currTask.ProjectId,
                 Name = currTask.Name,
@@ -126,23 +98,11 @@ namespace TaskManagementAPI.Services
                 Priority = currTask.Priority,
                 Completed = currTask.completed
             };
-
-            return taskReadDTO;
         }
 
         public async Task<bool> DeleteAsync(int id, int projectId)
         {
-            var task = await _context.Tasks.Where(t => t.Id == id && t.ProjectId == projectId)
-                .FirstOrDefaultAsync();
-
-            if (task != null)
-            {
-                _context.Tasks.Remove(task);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            else
-                return false;
+            return await _taskRepo.DeleteAsync(id, projectId);
         }
     }
 }

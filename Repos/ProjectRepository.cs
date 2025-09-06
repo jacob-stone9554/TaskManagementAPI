@@ -18,5 +18,10 @@ namespace TaskManagementAPI.Repos
             return await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
         }
 
+        public async Task<List<Project>?> GetProjectsAsync()
+        {
+            return await _context.Projects.ToListAsync();
+        }
+
     }
 }

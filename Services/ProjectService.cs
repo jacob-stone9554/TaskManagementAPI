@@ -8,13 +8,12 @@ namespace TaskManagementAPI.Services
 {
     public class ProjectService
     {        
-        private readonly AppDbContext _context; // remove this after updating to use ProjectRepo
-        private readonly ProjectRepository _projectRepo;
+       // private readonly AppDbContext _context; // remove this after updating to use ProjectRepo
+        private readonly IProjectRepository _projectRepo;
 
         
-        public ProjectService(AppDbContext context, ProjectRepository projectRepo) 
-        {
-            _context = context;
+        public ProjectService(IProjectRepository projectRepo) 
+        {            
             _projectRepo = projectRepo;
         }
 
@@ -34,17 +33,28 @@ namespace TaskManagementAPI.Services
 
         public async Task<IEnumerable<TaskItemReadDTO>> GetTasksByProjectAsync(int projectId)
         {
-            return await _context.Projects.Where(p => p.Id == projectId)
-                .SelectMany(p => p.tasks)
-                .Select(t => new TaskItemReadDTO
-                {
-                    ProjectId = t.ProjectId,
-                    Name = t.Name,
-                    Description = t.Description,
-                    Priority = t.Priority,
-                    Completed = t.completed
-                })
-                .ToListAsync();
+            var project = await _projectRepo.GetByIdAsync(projectId);
+
+            return project.tasks.Select(t => new TaskItemReadDTO
+            {
+                ProjectId = t.ProjectId,
+                Name = t.Name,
+                Description = t.Description,
+                Priority = t.Priority,
+                Completed = t.completed
+            }).ToList();
+
+            //return await _context.Projects.Where(p => p.Id == projectId)
+            //    .SelectMany(p => p.tasks)
+            //    .Select(t => new TaskItemReadDTO
+            //    {
+            //        ProjectId = t.ProjectId,
+            //        Name = t.Name,
+            //        Description = t.Description,
+            //        Priority = t.Priority,
+            //        Completed = t.completed
+            //    })
+            //    .ToListAsync();
         }
 
         public async Task<ProjectReadDTO> GetProjectAsync(int id)
@@ -92,7 +102,7 @@ namespace TaskManagementAPI.Services
             currProj.Name = project.Name;
             currProj.Description = project.Description;
             
-            await _context.SaveChangesAsync();
+            await _projectRepo.UpdateAsync(currProj);
 
             var readDTO = new ProjectReadDTO()
             {

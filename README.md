@@ -1,8 +1,8 @@
-# 🗂️ Task Management API
+# Task Management API
 
 A RESTful Web API built with **ASP.NET Core** and **Entity Framework Core** for managing projects and their associated tasks.
 
-## 🚀 Features
+## Features
 
 - Manage `Projects` and `Tasks`
 - Associate multiple tasks with a single project
@@ -10,16 +10,16 @@ A RESTful Web API built with **ASP.NET Core** and **Entity Framework Core** for 
 - EF Core database integration with code-first migrations
 - Clean architecture using DTOs and services
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - ASP.NET Core 8 Web API
 - Entity Framework Core (SQL Server)
 - Swagger / Swashbuckle for API documentation
 - LINQ and async/await for data access
 
-## 📦 Endpoints Overview
+## Endpoints Overview
 
-### 📁 Projects
+### Projects
 
 | Method | Endpoint              | Description                   |
 |--------|-----------------------|-------------------------------|
@@ -29,7 +29,7 @@ A RESTful Web API built with **ASP.NET Core** and **Entity Framework Core** for 
 | PUT    | `/api/projects/{id}`  | Update an existing project    |
 | DELETE | `/api/projects/{id}`  | Delete a project              |
 
-### ✅ Tasks (per project)
+### Tasks (per project)
 
 | Method | Endpoint                           | Description                     |
 |--------|------------------------------------|---------------------------------|
@@ -38,7 +38,7 @@ A RESTful Web API built with **ASP.NET Core** and **Entity Framework Core** for 
 | PUT    | `/api/tasks/{id}`                  | Update a task                   |
 | DELETE | `/api/tasks/{id}`                  | Delete a task                   |
 
-## 🧱 Project Structure
+## Project Structure
 
 /Controllers → API controllers
 

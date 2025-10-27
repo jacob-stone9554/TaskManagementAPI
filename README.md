@@ -49,3 +49,8 @@ A RESTful Web API built with **ASP.NET Core** and **Entity Framework Core** for 
 /Models → EF Core entity models
 
 /Data → AppDbContext
+
+## Upcoming Features
+
+- Role-Based Access Control with Microsoft Identity
+- Realtime updates and/or comments through SignalR integration
